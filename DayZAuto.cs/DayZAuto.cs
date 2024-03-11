@@ -4,6 +4,9 @@ using System.IO;
 using WindowsGSM.GameServer.Engine;
 using WindowsGSM.Functions;
 using System.Text;
+using System;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace WindowsGSM.Plugins
 {
@@ -27,6 +30,8 @@ namespace WindowsGSM.Plugins
         // - Settings properties for SteamCMD installer
         public override bool loginAnonymous => false;
         public override string AppId => "223350"; // Game server appId Steam
+ //       public string SteamGameId => "221100"; // Id of the Game itself. needed for workshop
+        public string SteamGameId => "221380"; // DEBUGGGG
         public override string StartPath => "DayZServer_x64.exe"; // Game server start path
 
 
@@ -88,11 +93,11 @@ namespace WindowsGSM.Plugins
             param += string.IsNullOrEmpty(_serverData.ServerIP) ? string.Empty : $" -ip={_serverData.ServerIP}";
             param += string.IsNullOrEmpty(_serverData.ServerPort) ? string.Empty : $" -port={_serverData.ServerPort}";
 
-            string modPath = Functions.ServerPath.GetServersConfigs(_serverData.ServerID, "Modlist.txt");
+            string modPath = Functions.ServerPath.GetServersServerFiles(_serverData.ServerID, "Modlist.txt");
             if (File.Exists(modPath))
             {
                 var lines = File.ReadAllLines(modPath);
-                var modParam = UpdateMods(lines);
+                var modParam = UpdateMods(new List<string>(lines));
 
                 if (!string.IsNullOrWhiteSpace(modParam))
                 {
@@ -116,7 +121,8 @@ namespace WindowsGSM.Plugins
 
             return p;
         }
-
+        private void DebugMessageAsync(string msg) =>
+            UI.CreateYesNoPromptV1("debug",msg,"yes", "yes");
         public async Task Stop(Process p)
         {
             await Task.Run(() =>
@@ -125,11 +131,10 @@ namespace WindowsGSM.Plugins
             });
         }
 
-        private string UpdateMods(string[] modList)
+        private string UpdateMods(List<string> modList)
         {
             var modParam = "";
-            var modIds = new string[16];
-            var modNames = new string[16];
+            var mods = new Dictionary<string,string>();
             int index = 0;
             foreach (string line in modList)
             {
@@ -137,22 +142,22 @@ namespace WindowsGSM.Plugins
                 if (splits.Length != 2)
                     continue;
 
-                modIds[index] = splits[0];
-                modNames[index] = splits[1];
+                mods[splits[0]] = splits[1];
 
                 modParam += $"{splits[1].Replace("@", "").Replace(",", "").Trim()};";
+                index++;
             }
-            DownloadMods(modIds);
+            DownloadMods(mods);
 
             return modParam;
         }
 
-        private void DownloadMods(string[] modIds)
-        {        
+        private void DownloadMods(Dictionary<string, string> mods)
+        {
             string _exeFile = "steamcmd.exe";
             string _installPath = ServerPath.GetBin("steamcmd");
-        
-            string PluginsPath = Functions.ServerPath.GetServersServerFiles(_serverData.ServerID, "/Plugins/");
+
+            string PluginsPath = Functions.ServerPath.GetServersServerFiles(_serverData.ServerID, "Plugins/");
             string exePath = Path.Combine(_installPath, _exeFile);
 
             if (!File.Exists(exePath))
@@ -162,14 +167,15 @@ namespace WindowsGSM.Plugins
             }
 
             StringBuilder sb = new StringBuilder();
-            sb.Append($"{GetLogin()} +force_install_dir \"{PluginsPath}\"");
-            foreach (var modId in modIds)
+            sb.Append($"{GetLogin()}");
+            foreach (var mod in mods)
             {
-                if(! string.IsNullOrEmpty(modId))
-                    sb.Append($" +workshop_download_item 221100 {modId}");
+                if (!string.IsNullOrEmpty(mod.Key) && !string.IsNullOrEmpty(mod.Value))
+                    sb.Append($" +workshop_download_item {SteamGameId} {mod.Key}");//221100
             }
 
             sb.Append($" +quit");
+
             Process p = new Process
             {
                 StartInfo =
@@ -189,8 +195,46 @@ namespace WindowsGSM.Plugins
             };
             p.Start();
             p.WaitForExit();
+            CopyMods(mods, _installPath);
 
             return;
+        }
+
+        private void CopyMods(Dictionary<string, string> mods, string _installPath)
+        {
+            //go through all Plugins and create entry in keys
+            var workshopPath = _installPath + $"\\steamapps\\workshop\\content\\{SteamGameId}\\";
+            foreach (var mod in mods)
+            {
+                if (string.IsNullOrEmpty(mod.Key) || string.IsNullOrEmpty(mod.Value))
+                {
+                    DebugMessageAsync($"Modlist entry invalid: key: {mod.Key}, Value:{mod.Value}");
+                    continue;
+                }
+
+                var src = workshopPath + mod.Key;
+                if (!Directory.Exists(src))
+                {
+                    DebugMessageAsync($"Mod was not downloaded key: {mod.Key}, Value:{mod.Value}  path: {src}");
+                    continue;
+                }
+              
+                var destFolder = Functions.ServerPath.GetServersServerFiles(_serverData.ServerID, mod.Value);
+
+                DebugMessageAsync($"copy mod from {src}  to  {destFolder}");
+                CopyDirectory(src, destFolder, true);
+
+                //now search for *.bikey files
+                var files = Directory.EnumerateFiles(destFolder, "*.bikey", SearchOption.AllDirectories);
+                foreach (var file in files)
+                {
+                    var dest = Functions.ServerPath.GetServersServerFiles(_serverData.ServerID, "keys", Path.GetFileName(file));
+
+                    DebugMessageAsync($"found and copied bikey File from {file}  to  {dest}");
+                    File.Copy(file, dest);
+                }
+                
+            }
         }
 
         private string GetLogin()
@@ -230,6 +274,39 @@ namespace WindowsGSM.Plugins
             }
 
             return $" +login \"{steamUser}\" \"{steamPass}\"";
+        }
+        //ms implementation https://learn.microsoft.com/en-us/dotnet/standard/io/how-to-copy-directories
+        static void CopyDirectory(string sourceDir, string destinationDir, bool recursive)
+        {
+            // Get information about the source directory
+            var dir = new DirectoryInfo(sourceDir);
+
+            // Check if the source directory exists
+            if (!dir.Exists)
+                throw new DirectoryNotFoundException($"Source directory not found: {dir.FullName}");
+
+            // Cache directories before we start copying
+            DirectoryInfo[] dirs = dir.GetDirectories();
+
+            // Create the destination directory
+            Directory.CreateDirectory(destinationDir);
+
+            // Get the files in the source directory and copy to the destination directory
+            foreach (FileInfo file in dir.GetFiles())
+            {
+                string targetFilePath = Path.Combine(destinationDir, file.Name);
+                file.CopyTo(targetFilePath);
+            }
+
+            // If recursive and copying subdirectories, recursively call this method
+            if (recursive)
+            {
+                foreach (DirectoryInfo subDir in dirs)
+                {
+                    string newDestinationDir = Path.Combine(destinationDir, subDir.Name);
+                    CopyDirectory(subDir.FullName, newDestinationDir, true);
+                }
+            }
         }
     }
 }
