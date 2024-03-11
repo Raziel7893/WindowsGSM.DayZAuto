@@ -144,7 +144,7 @@ namespace WindowsGSM.Plugins
 
                 mods[splits[0]] = splits[1];
 
-                modParam += $"{splits[1].Replace("@", "").Replace(",", "").Trim()};";
+                modParam += $"{splits[1].Replace(",", "").Trim()};"; //.Replace("@", "")
                 index++;
             }
             DownloadMods(mods);
@@ -219,7 +219,7 @@ namespace WindowsGSM.Plugins
                     continue;
                 }
               
-                var destFolder = Functions.ServerPath.GetServersServerFiles(_serverData.ServerID, mod.Value);
+                var destFolder = Functions.ServerPath.GetServersServerFiles(_serverData.ServerID, mod.Value.Replace("@", ""));
 
                 CopyDirectory(src, destFolder, true);
 
