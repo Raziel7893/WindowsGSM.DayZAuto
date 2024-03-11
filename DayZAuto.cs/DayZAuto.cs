@@ -21,7 +21,7 @@ namespace WindowsGSM.Plugins
             description = "WindowsGSM plugin for supporting DayZ Dedicated Server with automatic ModUpdates",
             version = "1.0.0",
             url = "https://github.com/raziel7893/WindowsGSM.DayZAuto", // Github repository link (Best practice)
-            color = "#34c9eb" // Color Hex
+            color = "00ff2a" // Color Hex
         };
 
         private readonly Functions.ServerConfig _serverData;
