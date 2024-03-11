@@ -30,12 +30,12 @@ namespace WindowsGSM.Plugins
         // - Settings properties for SteamCMD installer
         public override bool loginAnonymous => false;
         public override string AppId => "223350"; // Game server appId Steam
- //       public string SteamGameId => "221100"; // Id of the Game itself. needed for workshop
-        public string SteamGameId => "221380"; // DEBUGGGG
+        public string SteamGameId => "221100"; // Id of the Game itself. needed for workshop
+//        public string SteamGameId => "221380"; // DEBUGGGG
         public override string StartPath => "DayZServer_x64.exe"; // Game server start path
 
 
-        public string FullName = "DayZ Dedicated Server with ModAutoUpdate";
+        public string FullName = "DayZ Dedicated Server";
         public bool AllowsEmbedConsole = true;
         public int PortIncrements = 1;
         public dynamic QueryMethod = new GameServer.Query.A2S();
@@ -86,7 +86,7 @@ namespace WindowsGSM.Plugins
             string configPath = Functions.ServerPath.GetServersServerFiles(_serverData.ServerID, "serverDZ.cfg");
             if (!File.Exists(configPath))
             {
-                Notice = $"{Path.GetFileName(configPath)} not found ({configPath})";
+                CreateServerCFG();
             }
 
             string param = $" {_serverData.ServerParam}";
@@ -208,20 +208,19 @@ namespace WindowsGSM.Plugins
             {
                 if (string.IsNullOrEmpty(mod.Key) || string.IsNullOrEmpty(mod.Value))
                 {
-                    DebugMessageAsync($"Modlist entry invalid: key: {mod.Key}, Value:{mod.Value}");
+                    Error = Error + $"Modlist entry invalid: key: {mod.Key}, Value:{mod.Value}";
                     continue;
                 }
 
                 var src = workshopPath + mod.Key;
                 if (!Directory.Exists(src))
                 {
-                    DebugMessageAsync($"Mod was not downloaded key: {mod.Key}, Value:{mod.Value}  path: {src}");
+                    Error = Error + $"Mod was not downloaded key: {mod.Key}, Value:{mod.Value}  path: {src}";
                     continue;
                 }
               
                 var destFolder = Functions.ServerPath.GetServersServerFiles(_serverData.ServerID, mod.Value);
 
-                DebugMessageAsync($"copy mod from {src}  to  {destFolder}");
                 CopyDirectory(src, destFolder, true);
 
                 //now search for *.bikey files
@@ -229,11 +228,8 @@ namespace WindowsGSM.Plugins
                 foreach (var file in files)
                 {
                     var dest = Functions.ServerPath.GetServersServerFiles(_serverData.ServerID, "keys", Path.GetFileName(file));
-
-                    DebugMessageAsync($"found and copied bikey File from {file}  to  {dest}");
                     File.Copy(file, dest);
                 }
-                
             }
         }
 
