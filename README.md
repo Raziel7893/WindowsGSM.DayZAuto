@@ -7,7 +7,7 @@ base code was this howto: https://www.reddit.com/r/dayz/comments/afad51/automati
 Plugin for WindowsGSM to run a dedicated server for DayZ with automatic Modupdates enabled
 
 # Modlist
-this Plugin needs a Modlist.txt (inside WindowsGSM/servers/%ID%/Modlist.txt in the format of "SteamModId,@ModName", example content:
+this Plugin needs a Modlist.txt (inside WindowsGSM/servers/%ID%/serverfiles/Modlist.txt in the format of "SteamModId,@ModName", example content:
 1564026768,@Community-Online-Tools
 1571965849,@DisableBaseDestruction
 1572541337,@InventoryPlus
