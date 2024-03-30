@@ -8,6 +8,7 @@ Plugin for WindowsGSM to run a dedicated server for DayZ with automatic Modupdat
 
 # Modlist
 this Plugin needs a Modlist.txt (inside WindowsGSM/servers/%ID%/serverfiles/Modlist.txt in the format of "SteamModId,@ModName", example content:
+
 1564026768,@Community-Online-Tools
 
 1571965849,@DisableBaseDestruction
