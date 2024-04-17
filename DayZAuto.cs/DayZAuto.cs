@@ -4,9 +4,8 @@ using System.IO;
 using WindowsGSM.GameServer.Engine;
 using WindowsGSM.Functions;
 using System.Text;
-using System;
-using System.Linq;
 using System.Collections.Generic;
+using System;
 
 namespace WindowsGSM.Plugins
 {
@@ -117,9 +116,34 @@ namespace WindowsGSM.Plugins
                 },
                 EnableRaisingEvents = true
             };
-            p.Start();
 
-            return p;
+            // Set up Redirect Input and Output to WindowsGSM Console if EmbedConsole is on
+            if (_serverData.EmbedConsole)
+            {
+                p.StartInfo.RedirectStandardInput = true;
+                p.StartInfo.RedirectStandardOutput = true;
+                p.StartInfo.RedirectStandardError = true;
+                var serverConsole = new ServerConsole(_serverData.ServerID);
+                p.OutputDataReceived += serverConsole.AddOutput;
+                p.ErrorDataReceived += serverConsole.AddOutput;
+            }
+
+            // Start Process
+            try
+            {
+                p.Start();
+                if (_serverData.EmbedConsole)
+                {
+                    p.BeginOutputReadLine();
+                    p.BeginErrorReadLine();
+                }
+                return p;
+            }
+            catch (Exception e)
+            {
+                Error = e.Message;
+                return null; // return null if fail to start
+            }
         }
         private void DebugMessageAsync(string msg) =>
             UI.CreateYesNoPromptV1("debug",msg,"yes", "yes");
@@ -157,7 +181,6 @@ namespace WindowsGSM.Plugins
             string _exeFile = "steamcmd.exe";
             string _installPath = ServerPath.GetBin("steamcmd");
 
-            string PluginsPath = Functions.ServerPath.GetServersServerFiles(_serverData.ServerID, "Plugins/");
             string exePath = Path.Combine(_installPath, _exeFile);
 
             if (!File.Exists(exePath))
