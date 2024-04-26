@@ -1,3 +1,16 @@
+TODO: 
+- Add BEC-Support
+  -	maybe direct install in serverfiles/BattlEye
+	  - config von BEC/battleeye config ändern
+	- ServerExeName = DayZServer_x64.exe
+	  - https://github.com/TheGamingChief/BattlEye-Extended-Controls/
+	  - https://github.com/TheGamingChief/BattlEye-Extended-Controls/blob/master/BecGuide.txt
+	  - https://pastebin.com/yHgZLT4b  example skript
+	  - Rcon Port und Port in battlEye/BEServer.cfg
+- fix QueryPort 
+	- cfg file steamQueryPort=%%
+- Readme add -instanceId recommendation and --profile.. maybe directly use profile by default?
+
 
 # NOT DONE YET, still implementing. 
 
