@@ -1,3 +1,5 @@
+# NOT DONE YET, still implementing. 
+
 TODO: 
 - Add BEC-Support
   -	maybe direct install in serverfiles/BattlEye
@@ -11,8 +13,6 @@ TODO:
 	- cfg file steamQueryPort=%%
 - Readme add -instanceId recommendation and --profile.. maybe directly use profile by default?
 
-
-# NOT DONE YET, still implementing. 
 
 base code was this howto: https://www.reddit.com/r/dayz/comments/afad51/automatically_update_and_sync_your_steam_workshop/
 
