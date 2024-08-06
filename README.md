@@ -1,6 +1,7 @@
 # NOT DONE YET, still implementing. 
 
 TODO: 
+- mpermissions/mapfiles seems to be missing since 1.25
 - Add BEC-Support
   -	maybe direct install in serverfiles/BattlEye
 	  - config von BEC/battleeye config ändern
