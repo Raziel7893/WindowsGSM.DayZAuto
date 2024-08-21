@@ -20,6 +20,12 @@ base code was this howto: https://www.reddit.com/r/dayz/comments/afad51/automati
 # WindowsGSM.DayZAuto
 Plugin for WindowsGSM to run a dedicated server for DayZ with automatic Modupdates enabled
 
+# MPmissions
+- load https://github.com/BohemiaInteractive/DayZ-Central-Economy/releases/tag/DZ_125
+- extract and choose the map you want (i think default is dayzOffline.chernarusplus)
+- put it with the folder inside a folder named mpmissions in the root of the server(click Browse => Server Files)
+- end path would be serverfiles/mpmissions/dayzOffline.chernarusplus/(a bunch of files with a db and env folder
+
 # Modlist
 this Plugin needs a Modlist.txt (inside WindowsGSM/servers/%ID%/serverfiles/Modlist.txt in the format of "SteamModId,@ModName", example content:
 
