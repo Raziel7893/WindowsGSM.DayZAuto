@@ -43,7 +43,7 @@ namespace WindowsGSM.Plugins
         public string QueryPort = "27016";
         public string Defaultmap = "DayZOffline.chernarusplus";
         public string Maxplayers = "60";
-        public string Additional = "-config=serverDZ.cfg -doLogs -adminLog -netLog";
+        public string Additional = "-config=serverDZ.cfg -doLogs -adminLog -netLog -profiles=profile";
 
         public DayZAuto(Functions.ServerConfig serverData) : base(serverData)
         {
@@ -56,9 +56,12 @@ namespace WindowsGSM.Plugins
             string configPath = Functions.ServerPath.GetServersServerFiles(_serverData.ServerID, "serverDZ.cfg");
             if (await Functions.Github.DownloadGameServerConfig(configPath, FullName))
             {
-                string configText = File.ReadAllText(configPath);
+                StringBuilder configText = new StringBuilder(File.ReadAllText(configPath));
                 configText = configText.Replace("{{hostname}}", _serverData.ServerName);
                 configText = configText.Replace("{{maxplayers}}", Maxplayers);
+                configText.AppendLine("steamProtocolMaxDataSize = 4000;"); //should allow for more mods as this somehow affects how many parameters can be added via commandline 
+                configText.AppendLine("enableCfgGameplayFile = 0;");
+                configText.AppendLine("logFile = \"server_console.log\";");
                 File.WriteAllText(configPath, configText);
             }
         }
