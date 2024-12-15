@@ -62,6 +62,7 @@ namespace WindowsGSM.Plugins
                 configText.AppendLine("steamProtocolMaxDataSize = 4000;"); //should allow for more mods as this somehow affects how many parameters can be added via commandline 
                 configText.AppendLine("enableCfgGameplayFile = 0;");
                 configText.AppendLine("logFile = \"server_console.log\";");
+                configText.AppendLine($"steamQueryPort = {QueryPort};            // defines Steam query port,");
                 File.WriteAllText(configPath, configText);
             }
         }
